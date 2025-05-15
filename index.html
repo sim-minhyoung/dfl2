@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>투표 결과</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+
+    h2 {
+      margin-top: 30px;
+      font-size: 24px;
+    }
+
+    table {
+      margin: 20px auto;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 12px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    #chart-container {
+      width: 800px;
+      margin: 40px auto;
+    }
+
+    canvas {
+      max-width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h2>투표 결과</h2>
+  <table id="resultTable">
+    <thead>
+      <tr>
+        <th>순위</th>
+        <th>반</th>
+        <th>프로듀스 163</th>
+        <th>김민규를 이겨라</th>
+        <th>김승미를 이겨라</th>
+        <th>민아영을 이겨라</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <div id="chart-container">
+    <canvas id="resultChart"></canvas>
+  </div>
+
+  <script>
+fetch("https://script.google.com/macros/s/AKfycbwc84kpL0WpyuyG_XeZourOSViGW7cuN02EZnKqlqGFZockFfRzjYE4Gy27R4syixev/exec")
+  .then(response => response.json())
+  .then(data => {
+    const rows = data.data || data;  // data 속성이 있는지 확인하고 데이터 접근
+
+    // 객체 배열을 처리
+    const processed = rows.map(row => {
+      const 반 = row["반"];
+      const p163 = parseInt(row["프로듀스 163"] || 0);
+      const mingyu = parseInt(row["김민규를 이겨라"] || 0);
+      const seungmi = parseInt(row["김승미를 이겨라"] || 0);
+      const ayoung = parseInt(row["민아영을 이겨라"] || 0);
+      const total = p163 + mingyu + seungmi + ayoung;
+      return { 반, p163, mingyu, seungmi, ayoung, total };
+    });
+
+    // 총점 기준 정렬
+    processed.sort((a, b) => b.total - a.total);
+
+    // 표 생성
+    const tbody = document.querySelector("#resultTable tbody");
+    processed.forEach((row, index) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${index + 1}</td>
+        <td>${row.반}</td>
+        <td>${row.p163}</td>
+        <td>${row.mingyu}</td>
+        <td>${row.seungmi}</td>
+        <td>${row.ayoung}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    // 그래프 생성
+    const labels = processed.map(row => row.반);
+    const produce = processed.map(row => row.p163);
+    const mingyu = processed.map(row => row.mingyu);
+    const seungmi = processed.map(row => row.seungmi);
+    const ayoung = processed.map(row => row.ayoung);
+
+    const ctx = document.getElementById("resultChart").getContext("2d");
+    new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: labels,
+        datasets: [
+          {
+            label: "프로듀스 163",
+            data: produce,
+            backgroundColor: "#4e79a7"
+          },
+          {
+            label: "김민규를 이겨라",
+            data: mingyu,
+            backgroundColor: "#f28e2b"
+          },
+          {
+            label: "김승미를 이겨라",
+            data: seungmi,
+            backgroundColor: "#e15759"
+          },
+          {
+            label: "민아영을 이겨라",
+            data: ayoung,
+            backgroundColor: "#76b7b2"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            labels: {
+              font: {
+                size: 14
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            stacked: true,
+            ticks: {
+              font: { size: 14 }
+            }
+          },
+          y: {
+            stacked: true,
+            beginAtZero: true,
+            ticks: {
+              font: { size: 14 }
+            }
+          }
+        }
+      }
+    });
+  })
+  .catch(err => {
+    console.error("데이터 불러오기 실패:", err);
+    document.body.innerHTML += "<p>데이터를 불러오는 데 실패했습니다.</p>";
+  });
+
+  </script>
+</body>
+</html>
