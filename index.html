@@ -46,11 +46,8 @@
     <thead>
       <tr>
         <th>순위</th>
-        <th>반</th>
-        <th>프로듀스 163</th>
-        <th>김민규를 이겨라</th>
-        <th>김승미를 이겨라</th>
-        <th>민아영을 이겨라</th>
+        <th>팀</th>
+        <th>특표</th>
       </tr>
     </thead>
     <tbody></tbody>
@@ -61,46 +58,35 @@
   </div>
 
   <script>
-fetch("https://script.google.com/macros/s/AKfycbwc84kpL0WpyuyG_XeZourOSViGW7cuN02EZnKqlqGFZockFfRzjYE4Gy27R4syixev/exec")
+fetch("https://script.google.com/macros/s/AKfycbxCMA_0IAEyrWPUZT6neDrCoN2m82XgJKSFMFi99RrfHkJg6Av7YbSP9tLQHsuRI8Zt/exec")
   .then(response => response.json())
   .then(data => {
-    const rows = data.data || data;  // data 속성이 있는지 확인하고 데이터 접근
+    const rows = data.data || data;
 
-    // 객체 배열을 처리
     const processed = rows.map(row => {
       const 반 = row["반"];
-      const p163 = parseInt(row["프로듀스 163"] || 0);
-      const mingyu = parseInt(row["김민규를 이겨라"] || 0);
-      const seungmi = parseInt(row["김승미를 이겨라"] || 0);
-      const ayoung = parseInt(row["민아영을 이겨라"] || 0);
-      const total = p163 + mingyu + seungmi + ayoung;
-      return { 반, p163, mingyu, seungmi, ayoung, total };
+      const 특표 = parseInt(row["득표"] || 0);
+      return { 반, 특표 };
     });
 
-    // 총점 기준 정렬
-    processed.sort((a, b) => b.total - a.total);
+    // 정렬 후 상위 10개만 사용
+    const top10 = processed
+      .sort((a, b) => b.특표 - a.특표)
+      .slice(0, 10);
 
-    // 표 생성
     const tbody = document.querySelector("#resultTable tbody");
-    processed.forEach((row, index) => {
+    top10.forEach((row, index) => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td>${index + 1}</td>
         <td>${row.반}</td>
-        <td>${row.p163}</td>
-        <td>${row.mingyu}</td>
-        <td>${row.seungmi}</td>
-        <td>${row.ayoung}</td>
+        <td>${row.특표}</td>
       `;
       tbody.appendChild(tr);
     });
 
-    // 그래프 생성
-    const labels = processed.map(row => row.반);
-    const produce = processed.map(row => row.p163);
-    const mingyu = processed.map(row => row.mingyu);
-    const seungmi = processed.map(row => row.seungmi);
-    const ayoung = processed.map(row => row.ayoung);
+    const labels = top10.map(row => row.반);
+    const 특표Data = top10.map(row => row.특표);
 
     const ctx = document.getElementById("resultChart").getContext("2d");
     new Chart(ctx, {
@@ -109,24 +95,9 @@ fetch("https://script.google.com/macros/s/AKfycbwc84kpL0WpyuyG_XeZourOSViGW7cuN0
         labels: labels,
         datasets: [
           {
-            label: "프로듀스 163",
-            data: produce,
+            label: "특표",
+            data: 특표Data,
             backgroundColor: "#4e79a7"
-          },
-          {
-            label: "김민규를 이겨라",
-            data: mingyu,
-            backgroundColor: "#f28e2b"
-          },
-          {
-            label: "김승미를 이겨라",
-            data: seungmi,
-            backgroundColor: "#e15759"
-          },
-          {
-            label: "민아영을 이겨라",
-            data: ayoung,
-            backgroundColor: "#76b7b2"
           }
         ]
       },
@@ -143,13 +114,11 @@ fetch("https://script.google.com/macros/s/AKfycbwc84kpL0WpyuyG_XeZourOSViGW7cuN0
         },
         scales: {
           x: {
-            stacked: true,
             ticks: {
               font: { size: 14 }
             }
           },
           y: {
-            stacked: true,
             beginAtZero: true,
             ticks: {
               font: { size: 14 }
@@ -163,7 +132,7 @@ fetch("https://script.google.com/macros/s/AKfycbwc84kpL0WpyuyG_XeZourOSViGW7cuN0
     console.error("데이터 불러오기 실패:", err);
     document.body.innerHTML += "<p>데이터를 불러오는 데 실패했습니다.</p>";
   });
-
   </script>
 </body>
 </html>
+
